@@ -70,46 +70,82 @@ Clean the demographics data so that summaries of age and gender can be made in t
   
   # |> base pipe (more efficiently and thus better for large computation)
 
-# colnames(data_demographics_raw)
+ colnames(data_demographics_raw)
 
 library(stringr)
 
 #wrangle the demographics data out of the raw file
-dat_age_gender <- data_demographics_raw |> 
+dat_age <- data_demographics_raw |> 
   #rename the most important columns
   rename(unique_id = subject, item = trialcode) |> 
   #select the most important columns
   select(unique_id, item, response) |> 
   #filter the whole data according to the entries in "item"
-  filter(item %in% c("age", "Age", "AGE")) |> #any item of this vector
-  mutate(response = ifelse(response == "old", NA, response)) |>  #clean the response column if there is no integer
+  filter(item %in% c("age", "Age", "AGE")) |>
+  #any item of this vector
+  mutate(response = ifelse(response == "old", NA, response)) |> 
+  #clean the response column if there is no integer
   mutate(response = as.numeric(response))
 
 # temp <- dat_age_gender |> 
 #  filter(item == age) #wont work cause age is not an object it is an entry in the column
 
 # library(stringr)
-# temp <- dat_age_gender |> 
-#  filter(str_detect(item, "age")) #the same as above
+# temp2 <- dat_age_gender |> 
+#   filter(str_detect(item, "age")) #does the same task as the ifelse()-function above
 
-# temp <- dat_age_gender |> 
+# temp3 <- dat_age_gender |> 
 #  distinct(response)
 
-# temp2 <- dat_age_gender |> 
+# temp4 <- dat_age_gender |> 
   # mutate allows you to create or change variables
   # mutate(unique_id_2 = unique_id * 2) |> 
-  # original values will be overwritten by the newly calculated
+  # original values will be overwritten by the newly calculated values
   # mutate(unique_id = unique_id_2)
 
+# gives out the types of all columns
 # sapply(dat_age_gender, class)
 
-# library(stringr)
+# temp5 <- dat_age_gender |> 
+ #  mutate all entries of the column response to NAs which include the data entry "old" in the first place
+ #  mutate(response = ifelse(response == "old", NA, response))
 
-#temp3 <- dat_age_gender |> 
- # mutate all entries of the column response to "" which includes non-alphanumeric characters
- # mutate(response = ifelse(response == "old", NA, response))
+# homework: do the same for trialcode == "gender"
 
-# homework: clean data for the gender variable
+dat_gender <- data_demographics_raw |> 
+  # rename the most important columns
+  rename(unique_id = subject, item = trialcode) |> 
+  # select the most important columns
+  select(unique_id, item, response) |> 
+  # filter the whole data according to the entries in "item"
+  filter(item %in% c("gender", "Gender", "GENDER"))
+
+# give out all unique values of the column "response" to identify odd values
+column_entries <- unique(dat_gender$response)
+column_entries
+
+# create new copy of the dataset "dat_gender2"
+dat_gender2 <- dat_gender |> 
+  # filter out the odd values of the "response"-column
+  filter(!response %in% c("23", "yes")) |> 
+  # edit the response column according to...
+  mutate(
+    # merge different spellings to the according gender type
+    response = case_when(
+      #for entries belonging to the gender male
+      response %in% c("Male", "male", "MALE") ~ "male",
+      #... female
+      response %in% c("Female", "female", "FEMALE", "Woman") ~ "female",
+      #... non-binary
+      response %in% c("non binary", "Non-Binary") ~ "non-binary"
+    ),
+    #format the "response"-column further by factorizing it
+    response = factor(
+      response,
+      #with the gender value as the three different levels
+      levels = c("male", "female", "non-binary")
+    )
+  )
 
 ```
 
