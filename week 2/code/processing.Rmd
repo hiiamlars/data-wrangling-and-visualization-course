@@ -58,7 +58,58 @@ Clean the demographics data so that summaries of age and gender can be made in t
 
 ```{r}
 
-#dat_age_gender <- data_demographics_raw 
+# dat_age_gender <- data_demographics_raw |> 
+#  rename(date_time = date) |> 
+#  mutate(group = group + 1)
+
+# dat_age_gender <- data_demographics_raw %>%
+#  rename(date_time = date) %>%
+#  mutate(group = group + 1)
+  
+  # %>% tidyverse pipe (less fragile but needs more compuational power)
+  
+  # |> base pipe (more efficiently and thus better for large computation)
+
+# colnames(data_demographics_raw)
+
+library(stringr)
+
+#wrangle the demographics data out of the raw file
+dat_age_gender <- data_demographics_raw |> 
+  #rename the most important columns
+  rename(unique_id = subject, item = trialcode) |> 
+  #select the most important columns
+  select(unique_id, item, response) |> 
+  #filter the whole data according to the entries in "item"
+  filter(item %in% c("age", "Age", "AGE")) |> #any item of this vector
+  mutate(response = ifelse(response == "old", NA, response)) |>  #clean the response column if there is no integer
+  mutate(response = as.numeric(response))
+
+# temp <- dat_age_gender |> 
+#  filter(item == age) #wont work cause age is not an object it is an entry in the column
+
+# library(stringr)
+# temp <- dat_age_gender |> 
+#  filter(str_detect(item, "age")) #the same as above
+
+# temp <- dat_age_gender |> 
+#  distinct(response)
+
+# temp2 <- dat_age_gender |> 
+  # mutate allows you to create or change variables
+  # mutate(unique_id_2 = unique_id * 2) |> 
+  # original values will be overwritten by the newly calculated
+  # mutate(unique_id = unique_id_2)
+
+# sapply(dat_age_gender, class)
+
+# library(stringr)
+
+#temp3 <- dat_age_gender |> 
+ # mutate all entries of the column response to "" which includes non-alphanumeric characters
+ # mutate(response = ifelse(response == "old", NA, response))
+
+# homework: clean data for the gender variable
 
 ```
 
